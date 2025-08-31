@@ -1,17 +1,19 @@
-import React, { useState, useEffect } from 'react';
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Eye, EyeOff, Key, BarChart3, Clock, TestTube, Copy, RefreshCw } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth.jsx';
-import { useApi } from '../hooks/useApi.js';
+import { useAuth } from '@/lib/hooks/useAuth';
+import { useApi } from '@/lib/hooks/useApi';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api-api-hans.onrender.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api-api-hans.onrender.com';
 
-const Dashboard = () => {
-  const [userInfo, setUserInfo] = useState(null);
+export default function DashboardPage() {
+  const [userInfo, setUserInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showApiKey, setShowApiKey] = useState(false);
-  const [testResult, setTestResult] = useState(null);
-  const [stats, setStats] = useState(null);
+  const [testResult, setTestResult] = useState<any>(null);
+  const [stats, setStats] = useState<any>(null);
   const { user, logout } = useAuth();
   const { execute, loading: testLoading } = useApi();
 
@@ -23,7 +25,6 @@ const Dashboard = () => {
       try {
         const token = localStorage.getItem('token');
 
-        // 1) Get API key for current user (requires JWT)
         const keyRes = await fetch(`${API_BASE_URL}/user/api-key`, {
           headers: { Authorization: 'Bearer ' + token }
         });
@@ -32,8 +33,6 @@ const Dashboard = () => {
         if (keyData.status !== 'success') throw new Error('Failed to fetch API key');
         const apiKey = keyData.data.apiKey;
 
-        // 2) Get user info using API key
-        // server supports ?key=... as in your original backend; keep compatibility
         const infoRes = await fetch(`${API_BASE_URL}/api/info?key=${apiKey}`);
         if (!infoRes.ok) throw new Error('Failed to fetch user info');
         const infoData = await infoRes.json();
@@ -48,7 +47,6 @@ const Dashboard = () => {
           reset_time: infoData.data.reset_at
         });
 
-        // 3) If admin, fetch global stats
         if (user?.role === 'admin') {
           try {
             const statsRes = await fetch(`${API_BASE_URL}/dashboard-control-9000`, {
@@ -56,15 +54,11 @@ const Dashboard = () => {
             });
             if (statsRes.ok) {
               const statsJson = await statsRes.json();
-              // server returns { status: 'success', data: { totalUsers, totalRequestsToday, top } }
               if (statsJson.status === 'success' && statsJson.data) {
                 setStats(statsJson.data);
               } else {
-                // fallback if server returns raw object
                 setStats(statsJson.data || statsJson);
               }
-            } else {
-              console.warn('Admin stats fetch failed', statsRes.status);
             }
           } catch (err) {
             console.error('Error fetching admin stats', err);
@@ -87,7 +81,7 @@ const Dashboard = () => {
       const result = await execute('/api/time');
       setTestResult({ success: true, data: result });
     } catch (err) {
-      setTestResult({ success: false, error: err?.message || 'Request failed' });
+      setTestResult({ success: false, error: (err as any)?.message || 'Request failed' });
     }
   };
 
@@ -95,7 +89,7 @@ const Dashboard = () => {
     if (userInfo?.api_key) navigator.clipboard.writeText(userInfo.api_key).catch(() => {});
   };
 
-  const formatResetTime = (resetTime) => {
+  const formatResetTime = (resetTime: string) => {
     if (!resetTime) return 'Unknown';
     try {
       return new Date(resetTime).toLocaleString();
@@ -104,14 +98,13 @@ const Dashboard = () => {
     }
   };
 
-  const obfuscateApiKey = (key) => {
+  const obfuscateApiKey = (key: string) => {
     if (!key) return '';
     if (key.length <= 12) return key;
     return key.substring(0, 8) + '•'.repeat(Math.max(0, key.length - 12)) + key.substring(key.length - 4);
   };
 
-  // progress width for Requests Remaining (heuristic): cap at 1000 requests for visual
-  const computeProgressWidth = (remaining) => {
+  const computeProgressWidth = (remaining: number) => {
     if (remaining == null) return '0%';
     const capped = Math.min(1000, Math.max(0, Number(remaining)));
     const pct = Math.round((capped / 1000) * 100);
@@ -120,7 +113,7 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen gradient-bg flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading dashboard...</p>
@@ -130,7 +123,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 py-8">
+    <div className="min-h-screen gradient-bg py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
@@ -143,23 +136,21 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Admin global stats (visible only to admins) */}
         {user?.role === 'admin' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="bg-white rounded-xl shadow-lg p-6 border border-purple-100">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Users</h3>
-              <p className="text-2xl font-bold text-gray-900">{stats?.totalUsers ?? stats?.totalUsers ?? 0}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats?.totalUsers ?? 0}</p>
             </div>
 
             <div className="bg-white rounded-xl shadow-lg p-6 border border-purple-100">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">API Calls Today</h3>
-              <p className="text-2xl font-bold text-gray-900">{stats?.totalRequestsToday ?? stats?.totalRequestsToday ?? 0}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats?.totalRequestsToday ?? 0}</p>
             </div>
           </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-          {/* API Key Card */}
           <div className="bg-white rounded-xl shadow-lg p-6 border border-purple-100">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
@@ -183,7 +174,6 @@ const Dashboard = () => {
             </button>
           </div>
 
-          {/* Usage Stats Card */}
           <div className="bg-white rounded-xl shadow-lg p-6 border border-purple-100">
             <div className="flex items-center space-x-3 mb-4">
               <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
@@ -202,7 +192,6 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Reset Time Card */}
           <div className="bg-white rounded-xl shadow-lg p-6 border border-purple-100">
             <div className="flex items-center space-x-3 mb-4">
               <div className="p-2 bg-gradient-to-r from-pink-500 to-blue-500 rounded-lg">
@@ -215,7 +204,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Test API Section */}
         <div className="bg-white rounded-xl shadow-lg p-6 border border-purple-100">
           <div className="flex items-center space-x-3 mb-6">
             <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
@@ -246,6 +234,4 @@ const Dashboard = () => {
       </div>
     </div>
   );
-};
-
-export default Dashboard;
+}

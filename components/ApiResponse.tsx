@@ -1,7 +1,15 @@
 import React from 'react';
 import { Copy, Download, CheckCircle, XCircle } from 'lucide-react';
 
-const ApiResponse = ({ response, error, loading, onCopy, onDownload }) => {
+interface ApiResponseProps {
+  response?: any;
+  error?: string;
+  loading?: boolean;
+  onCopy?: () => void;
+  onDownload?: () => void;
+}
+
+const ApiResponse = ({ response, error, loading, onCopy, onDownload }: ApiResponseProps) => {
   if (loading) {
     return (
       <div className="bg-gray-50 rounded-lg p-6">

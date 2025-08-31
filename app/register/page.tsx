@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
-import { UserPlus, Mail, Lock, CheckCircle } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth.jsx';
+'use client';
 
-const Register = () => {
+import { useState } from 'react';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { UserPlus, Mail, Lock, CheckCircle } from 'lucide-react';
+import { useAuth } from '@/lib/hooks/useAuth';
+
+export default function RegisterPage() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -11,10 +14,10 @@ const Register = () => {
   const { register, isAuthenticated } = useAuth();
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    redirect('/dashboard');
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -42,7 +45,7 @@ const Register = () => {
     setLoading(false);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value
@@ -51,7 +54,7 @@ const Register = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center px-4">
+      <div className="min-h-screen gradient-bg flex items-center justify-center px-4">
         <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-6">
             <CheckCircle className="h-8 w-8 text-green-600" />
@@ -63,7 +66,7 @@ const Register = () => {
             Your account has been created successfully. You can now log in to access the HANS API dashboard.
           </p>
           <Link
-            to="/login"
+            href="/login"
             className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 px-4 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transition-all transform hover:scale-105 shadow-lg inline-block"
           >
             Continue to Login
@@ -74,7 +77,7 @@ const Register = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center px-4">
+    <div className="min-h-screen gradient-bg flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
         <div className="px-8 pt-8 pb-6">
           <div className="text-center mb-8">
@@ -147,7 +150,7 @@ const Register = () => {
         <div className="px-8 py-6 bg-gray-50 border-t border-gray-200">
           <p className="text-center text-sm text-gray-600">
             Already have an account?{' '}
-            <Link to="/login" className="text-purple-600 hover:text-purple-800 font-medium hover:underline">
+            <Link href="/login" className="text-purple-600 hover:text-purple-800 font-medium hover:underline">
               Sign in here
             </Link>
           </p>
@@ -155,6 +158,4 @@ const Register = () => {
       </div>
     </div>
   );
-};
-
-export default Register;
+}

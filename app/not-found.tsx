@@ -1,13 +1,12 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { Home, ArrowLeft } from 'lucide-react';
 
-const NotFound = () => {
+export default function NotFound() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center px-4">
+    <div className="min-h-screen gradient-bg flex items-center justify-center px-4">
       <div className="text-center max-w-md w-full">
         <div className="mb-8">
-          <h1 className="text-9xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
+          <h1 className="text-9xl font-bold gradient-text mb-4">
             404
           </h1>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Page Not Found</h2>
@@ -18,7 +17,7 @@ const NotFound = () => {
         
         <div className="space-y-4">
           <Link
-            to="/"
+            href="/"
             className="inline-flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transition-all transform hover:scale-105 shadow-lg"
           >
             <Home size={20} />
@@ -38,6 +37,4 @@ const NotFound = () => {
       </div>
     </div>
   );
-};
-
-export default NotFound;
+}

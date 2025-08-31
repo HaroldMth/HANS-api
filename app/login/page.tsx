@@ -1,27 +1,30 @@
-import React, { useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { LogIn, Mail, Lock } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth.jsx';
+'use client';
 
-const Login = () => {
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { LogIn, Mail, Lock } from 'lucide-react';
+import { useAuth } from '@/lib/hooks/useAuth';
+
+export default function LoginPage() {
   const [formData, setFormData] = useState({ email: '', password: '' });
-  const [localLoading, setLocalLoading] = useState(false); // UI-only loading guard
+  const [localLoading, setLocalLoading] = useState(false);
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
 
   const { login, isAuthenticated, isSubmitting } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
 
-  // If already authenticated (AuthProvider set user), redirect to dashboard
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    router.push('/dashboard');
+    return null;
   }
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLocalLoading(true);
@@ -35,14 +38,11 @@ const Login = () => {
       return;
     }
 
-    // call login from useAuth (this stores token and sets user)
-    const result = await login(email, password /*, optional rememberMe if you extend login */);
+    const result = await login(email, password);
 
     if (result?.success) {
-      // navigate after login() has stored token & set user
-      navigate('/dashboard');
+      router.push('/dashboard');
     } else {
-      // show provider error or fallback message
       setError(result?.error || 'Sign in failed. Check credentials and try again.');
     }
 
@@ -52,7 +52,7 @@ const Login = () => {
   const busy = isSubmitting || localLoading;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center px-4">
+    <div className="min-h-screen gradient-bg flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
         <div className="px-8 pt-8 pb-6">
           <div className="text-center mb-8">
@@ -63,7 +63,7 @@ const Login = () => {
             <p className="text-gray-600">Sign in to your HANS API account</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6" aria-describedby="login-error">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email Address
@@ -122,17 +122,10 @@ const Login = () => {
                   Remember me
                 </label>
               </div>
-              <button
-                type="button"
-                className="text-sm text-purple-600 hover:text-purple-800 hover:underline"
-                onClick={() => navigate('/forgot-password')}
-              >
-                Forgot password?
-              </button>
             </div>
 
             {error && (
-              <div id="login-error" className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                 <p className="text-red-800 text-sm">{error}</p>
               </div>
             )}
@@ -150,7 +143,7 @@ const Login = () => {
         <div className="px-8 py-6 bg-gray-50 border-t border-gray-200">
           <p className="text-center text-sm text-gray-600">
             Don't have an account?{' '}
-            <Link to="/register" className="text-purple-600 hover:text-purple-800 font-medium hover:underline">
+            <Link href="/register" className="text-purple-600 hover:text-purple-800 font-medium hover:underline">
               Create one here
             </Link>
           </p>
@@ -158,6 +151,4 @@ const Login = () => {
       </div>
     </div>
   );
-};
-
-export default Login;
+}

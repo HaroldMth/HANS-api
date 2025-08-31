@@ -1,20 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { Settings, Users, BarChart3, RefreshCw, Plus, Download, AlertTriangle } from 'lucide-react';
-import { admin } from '../api.js';
+'use client';
 
-const AdminPanel = () => {
+import { useState, useEffect } from 'react';
+import { Settings, Users, BarChart3, RefreshCw, Plus, Download, AlertTriangle } from 'lucide-react';
+import { admin } from '@/lib/api';
+
+export default function AdminPanelPage() {
   const [dashboardData, setDashboardData] = useState({
     totalUsers: 0,
     totalRequestsToday: 0,
-    totalRequestsAllTime: 0 // 👈 add this
+    totalRequestsAllTime: 0
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [actionLoading, setActionLoading] = useState('');
-  const [showModal, setShowModal] = useState(null);
+  const [showModal, setShowModal] = useState<string | null>(null);
 
-  // modal form state
   const [modalUserId, setModalUserId] = useState('');
   const [modalLimit, setModalLimit] = useState('');
   const [modalAmount, setModalAmount] = useState('');
@@ -23,7 +24,6 @@ const AdminPanel = () => {
   const fetchDashboardAndUsers = async () => {
     setError('');
     try {
-      // dashboard
       const dashRes = await admin.getDashboard();
       const dashData = (dashRes && dashRes.status === 'success' && dashRes.data) ? dashRes.data : (dashRes || {});
       setDashboardData(prev => ({
@@ -37,7 +37,6 @@ const AdminPanel = () => {
         )
       }));
 
-      // fetch all-time total requests
       try {
         const totalReqRes = await admin.getTotalRequests();
         const totalReqData = (totalReqRes && totalReqRes.status === 'success' && totalReqRes.data)
@@ -51,7 +50,6 @@ const AdminPanel = () => {
         console.error('fetch total requests error', err);
       }
 
-      // users
       const usersRes = await admin.getUsers();
       const ux = (usersRes && usersRes.status === 'success' && usersRes.data) ? usersRes.data : (usersRes && usersRes.data) ? usersRes.data : (usersRes || []);
       setUsers(Array.isArray(ux) ? ux : []);
@@ -65,7 +63,6 @@ const AdminPanel = () => {
 
   useEffect(() => {
     fetchDashboardAndUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const refreshAll = async () => {
@@ -73,7 +70,7 @@ const AdminPanel = () => {
     await fetchDashboardAndUsers();
   };
 
-  const handleRegenerateKey = async (userId) => {
+  const handleRegenerateKey = async (userId: string) => {
     setActionLoading('regenerate');
     setError('');
     setSuccessMsg('');
@@ -81,7 +78,7 @@ const AdminPanel = () => {
       await admin.regenerateKey(userId);
       setSuccessMsg('API key regenerated.');
       await fetchDashboardAndUsers();
-    } catch (err) {
+    } catch (err: any) {
       console.error('regenerate error', err);
       setError(err?.response?.data?.message || 'Failed to regenerate API key');
     } finally {
@@ -90,7 +87,7 @@ const AdminPanel = () => {
     }
   };
 
-  const handleUpdateLimit = async (userId, limit) => {
+  const handleUpdateLimit = async (userId: string, limit: number) => {
     setActionLoading('limit');
     setError('');
     setSuccessMsg('');
@@ -98,7 +95,7 @@ const AdminPanel = () => {
       await admin.updateLimit(userId, limit);
       setSuccessMsg('User limit updated.');
       await fetchDashboardAndUsers();
-    } catch (err) {
+    } catch (err: any) {
       console.error('update limit error', err);
       setError(err?.response?.data?.message || 'Failed to update limit');
     } finally {
@@ -107,7 +104,7 @@ const AdminPanel = () => {
     }
   };
 
-  const handleAddRequests = async (userId, amount) => {
+  const handleAddRequests = async (userId: string, amount: number) => {
     setActionLoading('requests');
     setError('');
     setSuccessMsg('');
@@ -115,7 +112,7 @@ const AdminPanel = () => {
       await admin.addRequests(userId, amount);
       setSuccessMsg('Added requests to user.');
       await fetchDashboardAndUsers();
-    } catch (err) {
+    } catch (err: any) {
       console.error('add requests error', err);
       setError(err?.response?.data?.message || 'Failed to add requests');
     } finally {
@@ -130,7 +127,6 @@ const AdminPanel = () => {
     setSuccessMsg('');
     try {
       const blobOrData = await admin.downloadLogs();
-      // if axios returned a Blob, use it directly; if it's raw data string, create blob
       const blob = (blobOrData instanceof Blob) ? blobOrData : new Blob([blobOrData], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -141,7 +137,7 @@ const AdminPanel = () => {
       a.remove();
       URL.revokeObjectURL(url);
       setSuccessMsg('Logs downloaded.');
-    } catch (err) {
+    } catch (err: any) {
       console.error('download logs error', err);
       setError(err?.response?.data?.message || 'Failed to download logs');
     } finally {
@@ -151,7 +147,7 @@ const AdminPanel = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen gradient-bg flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading admin dashboard...</p>
@@ -161,7 +157,7 @@ const AdminPanel = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 py-8">
+    <div className="min-h-screen gradient-bg py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
@@ -177,7 +173,6 @@ const AdminPanel = () => {
           </div>
         )}
 
-        {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-lg p-6 border border-purple-100">
             <div className="flex items-center">
@@ -210,7 +205,6 @@ const AdminPanel = () => {
           </div>
         </div>
 
-        {/* Admin Actions */}
         <div className="bg-white rounded-xl shadow-lg border border-purple-100 overflow-hidden mb-8">
           <div className="p-6 bg-gradient-to-r from-purple-500 to-pink-500">
             <h2 className="text-xl font-semibold text-white">Admin Actions</h2>
@@ -240,7 +234,6 @@ const AdminPanel = () => {
           </div>
         </div>
 
-        {/* Users Table */}
         <div className="mt-8 bg-white rounded-xl shadow-lg border border-purple-100 p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Users</h2>
           <div className="overflow-x-auto">
@@ -279,7 +272,6 @@ const AdminPanel = () => {
           </div>
         </div>
 
-        {/* Confirmation Modals */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
@@ -326,7 +318,6 @@ const AdminPanel = () => {
                     if (!modalUserId || !modalAmount) return setError('User ID and amount required');
                     await handleAddRequests(modalUserId, parseInt(modalAmount, 10));
                   }
-                  // reset modal fields after action
                   setModalUserId(''); setModalLimit(''); setModalAmount('');
                 }} className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all">Confirm</button>
               </div>
@@ -336,6 +327,4 @@ const AdminPanel = () => {
       </div>
     </div>
   );
-};
-
-export default AdminPanel;
+}

@@ -1,12 +1,12 @@
 import { useState, useCallback } from 'react';
-import { callEndpoint } from '../api.js';
+import { callEndpoint } from '../api';
 
 export const useApi = () => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [data, setData] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<any>(null);
 
-  const execute = useCallback(async (endpoint, options = {}) => {
+  const execute = useCallback(async (endpoint: string, options: any = {}) => {
     setLoading(true);
     setError(null);
     
@@ -14,7 +14,7 @@ export const useApi = () => {
       const response = await callEndpoint(endpoint, options);
       setData(response.data);
       return { success: true, data: response.data, response };
-    } catch (err) {
+    } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Request failed';
       setError(errorMessage);
       return { success: false, error: errorMessage };
